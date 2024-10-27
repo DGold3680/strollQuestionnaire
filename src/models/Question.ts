@@ -1,4 +1,5 @@
 import { Schema, model, Document } from "mongoose";
+import { Region } from "./region";
 
 export interface QuestionDocument extends Document {
   _id: Schema.Types.ObjectId;
@@ -23,6 +24,7 @@ const questionSchema = new Schema<QuestionDocument>(
     sequence: {
       type: Number,
       required: true,
+      unique:true
     },
   },
   {
@@ -30,4 +32,4 @@ const questionSchema = new Schema<QuestionDocument>(
   }
 );
 
-export const Question = model("Question", questionSchema);
+export const Question = model<QuestionDocument>("Question", questionSchema);

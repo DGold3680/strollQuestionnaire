@@ -1,4 +1,5 @@
 import { Schema, model, Document } from "mongoose";
+import { Region } from "./region";
 
 export interface UserDocument extends Document {
   _id: Schema.Types.ObjectId;
@@ -25,4 +26,4 @@ const userSchema = new Schema<UserDocument>(
   }
 );
 
-export const User = model("User", userSchema);
+export const User = model<UserDocument>("User", userSchema);

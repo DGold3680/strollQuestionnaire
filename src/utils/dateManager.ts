@@ -1,6 +1,6 @@
 import { dayTimeZone } from "../config/dayjsConfig";
 
-export const dateManger = {
+export const dateManager = {
   getCurrentCycleForRegion: (
     startDate: Date,
     cycleDuration: number,

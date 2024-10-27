@@ -2,11 +2,8 @@ import dotenv from "dotenv";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 
-import { connectDB } from "./dbConfig/connectDb";
-import { User } from "./models/User";
-import { Region } from "./models/Region";
-import { dateManger } from "./utils/dateManager";
-
+import { connectDB } from "./config/connectDb";
+import { v1Routes } from "./routes/v1/index";
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }
@@ -15,40 +12,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-app.get("/", (req, res) => {
+app.use(`/api/${process.env.API_VERSION}`, v1Routes);
+app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Question Rotation System API" });
 });
-
-app.get(
-  "/api/question/:userId",
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const user = await User.findById(req.params.userId).populate("region");
-      if (!user) {
-        res.status(404).json({ message: "User not found" });
-      }
-
-      const region = await Region.findById(user.region).populate("questions");
-      const currentCycle = dateManger.getCurrentCycleForRegion(
-        region.cycleConfig.startDate,
-        region.cycleConfig.cycleDuration,
-        region.timezone
-      );
-
-      const questionIndex = (currentCycle - 1) % region.questions.length;
-      const question = region.questions[questionIndex];
-
-      res.json({
-        cycle: currentCycle,
-        question: question,
-      });
-    } catch (error) {
-      console.error("Error getting question:", error);
-      res.status(500).json({ message: "Error getting question" });
-    }
-  }
-);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
