@@ -17,7 +17,7 @@ With the core of the service complete and reasonably scalable, I documented the 
 
 
 ---
-Pros of Implementation
+### Pros of Implementation
 
 Simple and easy to understand
 
@@ -30,7 +30,7 @@ Core functionality works
 Well documented and tested
 
 
-Cons
+### Cons
 
 Scalability could be increased (at the cost of complexity)
 
@@ -38,7 +38,8 @@ No use of containerization (Docker) for consistent service delivery; unfortunate
 
 Security implementation could be stronger
 
-No load testing conducted
+No load testing conducted 
+
 ---
 
 Suggestions for Improving the Service
