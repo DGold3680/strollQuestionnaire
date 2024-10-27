@@ -8,6 +8,9 @@ export const dateManager = {
   ) => {
     const now = dayTimeZone().tz(timezone);
     const start = dayTimeZone(startDate).tz(timezone);
+    if (now.isBefore(start)) {
+      return 1;
+    }
     const diffDays = now.diff(start, "days");
     return Math.floor(diffDays / cycleDuration) + 1;
   },

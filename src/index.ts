@@ -3,6 +3,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 
 import { connectDB } from "./config/connectDb";
+import { connectCache } from "./config/redisCache";
 import { v1Routes } from "./routes/v1/index";
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
@@ -24,6 +25,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 const startServer = async () => {
   await connectDB();
+  await connectCache()
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -31,3 +33,6 @@ const startServer = async () => {
 };
 
 startServer();
+
+import { initializeJobs } from "./agendas/questionCyclingAgenda";
+initializeJobs().catch((err) => console.error("Failed to start agendas:", err))

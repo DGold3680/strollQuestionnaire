@@ -13,7 +13,6 @@ export interface RegionDocument extends Document {
   activeCycle: number;
   createdAt: Date;
   updatedAt: Date;
-  currentCycle: number;
 }
 
 const regionSchema = new Schema<RegionDocument>(
@@ -61,30 +60,8 @@ const regionSchema = new Schema<RegionDocument>(
   }
 );
 
-const calculateActiveCycle = (
-  startDate: Date,
-  cycleDuration: number,
-  timezone: string
-): number => {
-  if (!startDate || !cycleDuration || !timezone) {
-    throw new Error("Missing required parameters for calculating active cycle");
-  }
-
-  const now = dayTimeZone().tz(timezone);
-  const start = startDate;
-
-  if (now.isBefore(start)) {
-    return 1;
-  }
-
-  const daysElapsed = now.diff(start, "days");
-  return Math.floor(daysElapsed / cycleDuration) + 1;
-};
-
-// Pre-save hook with improved error handling
 regionSchema.pre<RegionDocument>("save", function (next) {
   try {
-    // Check if this is a new document or if relevant fields were modified
     if (
       this.isNew ||
       this.isModified("timezone") ||
@@ -103,7 +80,7 @@ regionSchema.pre<RegionDocument>("save", function (next) {
         );
       }
 
-      this.activeCycle = calculateActiveCycle(
+      this.activeCycle = dateManager.getCurrentCycleForRegion(
         this.cycleConfig.startDate,
         this.cycleConfig.cycleDuration,
         this.timezone
@@ -115,15 +92,6 @@ regionSchema.pre<RegionDocument>("save", function (next) {
   }
 });
 
-regionSchema.virtual("currentCycle").get(function () {
-  return dateManager.getCurrentCycleForRegion(
-    this.cycleConfig.startDate,
-    this.cycleConfig.cycleDuration,
-    this.timezone
-  );
-});
-
-// Pre-findOneAndUpdate hook with improved error handling and type safety
 regionSchema.pre<Query<RegionDocument, RegionDocument>>(
   "findOneAndUpdate",
   async function (next) {
@@ -131,7 +99,6 @@ regionSchema.pre<Query<RegionDocument, RegionDocument>>(
       const update = this.getUpdate() as Partial<RegionDocument>;
       const filter = this.getFilter();
 
-      // Only proceed if relevant fields are being updated
       if (
         !update.timezone &&
         !update.cycleConfig?.cycleDuration &&
@@ -140,13 +107,11 @@ regionSchema.pre<Query<RegionDocument, RegionDocument>>(
         return next();
       }
 
-      // Fetch existing document
       const existingDoc = await this.model.findOne(filter);
       if (!existingDoc) {
         return next(new Error("Document not found"));
       }
 
-      // Merge existing and updated values
       const finalTimezone = update.timezone || existingDoc.timezone;
       const finalCycleConfig = {
         cycleDuration:
@@ -156,8 +121,7 @@ regionSchema.pre<Query<RegionDocument, RegionDocument>>(
           update.cycleConfig?.startDate || existingDoc.cycleConfig.startDate,
       };
 
-      // Calculate and set new active cycle
-      const newActiveCycle = calculateActiveCycle(
+      const newActiveCycle = dateManager.getCurrentCycleForRegion(
         finalCycleConfig.startDate,
         finalCycleConfig.cycleDuration,
         finalTimezone
