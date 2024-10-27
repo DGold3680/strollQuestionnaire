@@ -23,13 +23,16 @@ const questionSchema = new Schema<QuestionDocument>(
     },
     sequence: {
       type: Number,
+      min:0,
       required: true,
-      unique:true
+      unique: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+questionSchema.index({ region: 1, sequence: 1 });
 
 export const Question = model<QuestionDocument>("Question", questionSchema);
